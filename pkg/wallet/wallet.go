@@ -89,6 +89,21 @@ func (hp *HDPathLevel) String() string {
 	return fmt.Sprintf("m/%v'/%v'/%v'/%v/%v", hp.Purpose, hp.CoinType, hp.Account, hp.Change, hp.Index)
 }
 
+func GetDeriveKey(masterKey *hdkeychain.ExtendedKey, i uint32) (*hdkeychain.ExtendedKey, error) {
+	var acc *hdkeychain.ExtendedKey
+	var err error
+	if masterKey.IsAffectedByIssue172() {
+		acc, err = masterKey.DeriveNonStandard(i)
+	} else {
+		acc, err = masterKey.Derive(i)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return acc, nil
+}
 func GetPrvKeyFromHDWallet(seed []byte, hp *HDPathLevel) (*ecdsa.PrivateKey, error) {
 	// Generate a new master node using the seed.
 	masterKey, err := hdkeychain.NewMaster(seed, &chaincfg.MainNetParams)
@@ -96,27 +111,27 @@ func GetPrvKeyFromHDWallet(seed []byte, hp *HDPathLevel) (*ecdsa.PrivateKey, err
 		return nil, err
 	}
 	// This gives the path: m/{purpose}'
-	acc, err := masterKey.Child(hdkeychain.HardenedKeyStart + hp.Purpose)
+	acc, err := GetDeriveKey(masterKey, (hdkeychain.HardenedKeyStart + hp.Purpose))
 	if err != nil {
 		return nil, err
 	}
 	// This gives the path: m/{purpose}'/{coin_type}'
-	acc, err = acc.Child(hdkeychain.HardenedKeyStart + hp.CoinType)
+	acc, err = GetDeriveKey(acc, (hdkeychain.HardenedKeyStart + hp.CoinType))
 	if err != nil {
 		return nil, err
 	}
 	// This gives the path: m/{purpose}'/{coin_type}'/{account}'
-	acc, err = acc.Child(hdkeychain.HardenedKeyStart + hp.Account)
+	acc, err = GetDeriveKey(acc, (hdkeychain.HardenedKeyStart + hp.Account))
 	if err != nil {
 		return nil, err
 	}
 	// This gives the path: m/{purpose}'/{coin_type}'/{account}'/{change}
-	acc, err = acc.Child(0 + hp.Change)
+	acc, err = GetDeriveKey(acc, (0 + hp.Change))
 	if err != nil {
 		return nil, err
 	}
 	// This gives the path: m/{purpose}'/{coin_type}'/{account}'/{change}/{index}
-	acc, err = acc.Child(hp.Index)
+	acc, err = GetDeriveKey(acc, (hp.Index))
 	if err != nil {
 		return nil, err
 	}

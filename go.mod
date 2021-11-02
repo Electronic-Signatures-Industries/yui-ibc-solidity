@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/btcsuite/btcd v0.21.0-beta
-	github.com/btcsuite/btcutil v1.0.2
+	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
 	github.com/deckarep/golang-set v1.7.1 // indirect
 	github.com/ethereum/go-ethereum v1.9.25
 	github.com/go-kit/kit v0.10.0 // indirect
